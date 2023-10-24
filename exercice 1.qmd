@@ -33,4 +33,10 @@ knitr::kable(grades |> summary("min"=min(Exam), "max"= max(Exam), "median"= medi
 ```{r}
 grades |> summarise("min"=min(Exam, na.rm=TRUE), "max"= max(Exam, na.rm=TRUE), "median"= median(Exam, na.rm=TRUE), "mean"= mean(Exam, na.rm=TRUE)) |> knitr::kable()
 ```
+## Question 3
 
+```{r}
+num_absent <- grades |> filter(is.na(Exam))
+```
+
+There were  `r nrow(num_absent)` absent students. 
