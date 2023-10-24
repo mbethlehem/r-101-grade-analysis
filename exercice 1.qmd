@@ -21,3 +21,16 @@ library(vroom)
 grades <- vroom(here("grades.csv"))
 ```
 
+## Question 2
+```{r}
+library(knitr)
+```
+
+
+```{r}
+knitr::kable(grades |> summary("min"=min(Exam), "max"= max(Exam), "median"= median(Exam), "mean"= mean(Exam)))
+```
+```{r}
+grades |> summarise("min"=min(Exam, na.rm=TRUE), "max"= max(Exam, na.rm=TRUE), "median"= median(Exam, na.rm=TRUE), "mean"= mean(Exam, na.rm=TRUE)) |> knitr::kable()
+```
+
