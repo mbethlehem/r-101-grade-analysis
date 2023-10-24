@@ -50,4 +50,12 @@ grades_new <- grades |> filter(!is.na(Exam))
 ```{r}
 ggplot(grades_new, aes(x=Exam)) + geom_boxplot()
 ```
+## Question 5
+
+Compute the number of students in each Group and include the results in your document as a table
+
+```{r}
+grades |> group_by(Group) |> summarise(N=n()) |> knitr::kable()
+```
+
 
