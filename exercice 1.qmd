@@ -75,4 +75,17 @@ count_group <- grades |> group_by(Group) |> summarise(N=n())
 ggplot(count_group, aes(x=Group, y=N)) + geom_col()
 ```
 
+## Question 7
+
+Represent graphically the distribution of the grades at the Exam conditioned by the group. Test at least two different representations.
+
+### Alternative 1
+```{r}
+ggplot(grades, aes(x=Exam, fill=Group)) + geom_bar(position="fill")
+```
+### Alternative 2
+
+```{r}
+ggplot(grades_new, aes(y=Exam, fill= Group)) + geom_boxplot()
+```
 
