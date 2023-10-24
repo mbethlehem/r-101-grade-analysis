@@ -48,6 +48,13 @@ Represent graphically in an adapted way the distribution of grades at the Exam. 
 grades_new <- grades |> filter(!is.na(Exam))
 ```
 ```{r}
+grade_ <- grades |> filter(!is.na(Exam)) |> group_by(Exam) |> summarise(N=n())
+```
+
+```{r}
+ggplot(grade_, aes(x=Exam, y=N)) + geom_col()
+```
+```{r}
 ggplot(grades_new, aes(x=Exam)) + geom_boxplot()
 ```
 ## Question 5
