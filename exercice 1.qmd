@@ -88,4 +88,16 @@ ggplot(grades, aes(x=Exam, fill=Group)) + geom_bar(position="fill")
 ```{r}
 ggplot(grades_new, aes(y=Exam, fill= Group)) + geom_boxplot()
 ```
+## Question 8
+
+Compute the number of students who missed the Exam in each Group (i.e. students whose Exam is NA). Beware that this number can be zero in some groups and this can induce difficulties with
+group_by. A way to circumvent this problem is to note that the sum of a vector of TRUE/FALSE values
+is exactly the number of times TRUE values that appear in the vector. For instance
+
+```{r}
+grades |> mutate(absent= case_when(!is.na(Exam)~F,is.na(Exam)~T))
+```
+```{r}
+grades |> mutate(absent= case_when(!is.na(Exam)~F,is.na(Exam)~T)) |>group_by(Group) |> summarise(sum= sum(absent))
+```
 
