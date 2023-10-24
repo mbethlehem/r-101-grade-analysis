@@ -40,3 +40,14 @@ num_absent <- grades |> filter(is.na(Exam))
 ```
 
 There were  `r nrow(num_absent)` absent students. 
+
+## Question 4
+Represent graphically in an adapted way the distribution of grades at the Exam. Make sure to adapt the code to avoid any error or warning from ggplot2.
+
+```{r}
+grades_new <- grades |> filter(!is.na(Exam))
+```
+```{r}
+ggplot(grades_new, aes(x=Exam)) + geom_boxplot()
+```
+
