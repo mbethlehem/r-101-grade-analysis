@@ -57,5 +57,15 @@ Compute the number of students in each Group and include the results in your doc
 ```{r}
 grades |> group_by(Group) |> summarise(N=n()) |> knitr::kable()
 ```
+## Question 6
+
+Represent the same information as in the previous question in a graphical way
+```{r}
+count_group <- grades |> group_by(Group) |> summarise(N=n())
+```
+
+```{r}
+ggplot(count_group, aes(x=Group, y=N)) + geom_col()
+```
 
 
