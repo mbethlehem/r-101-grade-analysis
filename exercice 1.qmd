@@ -26,10 +26,6 @@ grades <- vroom(here("grades.csv"))
 library(knitr)
 ```
 
-
-```{r}
-knitr::kable(grades |> summary("min"=min(Exam), "max"= max(Exam), "median"= median(Exam), "mean"= mean(Exam)))
-```
 ```{r}
 grades |> summarise("min"=min(Exam, na.rm=TRUE), "max"= max(Exam, na.rm=TRUE), "median"= median(Exam, na.rm=TRUE), "mean"= mean(Exam, na.rm=TRUE)) |> knitr::kable()
 ```
@@ -42,7 +38,8 @@ num_absent <- grades |> filter(is.na(Exam))
 There were  `r nrow(num_absent)` absent students. 
 
 ## Question 4
-Represent graphically in an adapted way the distribution of grades at the Exam. Make sure to adapt the code to avoid any error or warning from ggplot2.
+
+### Alternative 1:
 
 ```{r}
 grades_new <- grades |> filter(!is.na(Exam))
@@ -54,19 +51,17 @@ grade_ <- grades |> filter(!is.na(Exam)) |> group_by(Exam) |> summarise(N=n())
 ```{r}
 ggplot(grade_, aes(x=Exam, y=N)) + geom_col()
 ```
+### Alternative 2
 ```{r}
 ggplot(grades_new, aes(x=Exam)) + geom_boxplot()
 ```
 ## Question 5
-
-Compute the number of students in each Group and include the results in your document as a table
 
 ```{r}
 grades |> group_by(Group) |> summarise(N=n()) |> knitr::kable()
 ```
 ## Question 6
 
-Represent the same information as in the previous question in a graphical way
 ```{r}
 count_group <- grades |> group_by(Group) |> summarise(N=n())
 ```
@@ -81,7 +76,7 @@ Represent graphically the distribution of the grades at the Exam conditioned by 
 
 ### Alternative 1
 ```{r}
-ggplot(grades, aes(x=Exam, fill=Group)) + geom_bar(position="fill")
+ggplot(grades_new, aes(x=Exam, fill=Group)) + geom_bar(position="fill")
 ```
 ### Alternative 2
 
@@ -90,14 +85,107 @@ ggplot(grades_new, aes(y=Exam, fill= Group)) + geom_boxplot()
 ```
 ## Question 8
 
-Compute the number of students who missed the Exam in each Group (i.e. students whose Exam is NA). Beware that this number can be zero in some groups and this can induce difficulties with
-group_by. A way to circumvent this problem is to note that the sum of a vector of TRUE/FALSE values
-is exactly the number of times TRUE values that appear in the vector. For instance
+```{r}
+absent_pergroup <- grades |> mutate(absent= case_when(!is.na(Exam)~F,is.na(Exam)~T)) |>group_by(Group) |> summarise(sum= sum(absent)) 
 
-```{r}
-grades |> mutate(absent= case_when(!is.na(Exam)~F,is.na(Exam)~T))
-```
-```{r}
-grades |> mutate(absent= case_when(!is.na(Exam)~F,is.na(Exam)~T)) |>group_by(Group) |> summarise(sum= sum(absent))
+absent_pergroup|> knitr::kable(caption="number of absent students per group")
 ```
 
+## Question 9
+
+```{r}
+ggplot(absent_pergroup, aes(x=Group, y=sum)) + geom_col()
+```
+
+## Question 10
+
+```{r}
+columns <- grades |> select(is.numeric, -Id) |> names()
+grades[columns] <-  round(grades[columns],2)
+```
+
+```{r}
+grades_longer <- grades |> pivot_longer(-c("Id", "Group"),names_to= "name", values_to= "value") 
+```
+
+## Question 11
+
+```{r}
+absence <- grades_longer |> mutate(absent= case_when(!is.na(value)~F,is.na(value)~T)) |> group_by(Id) |> summarise(sum= sum(absent)) 
+
+absence |> knitr::kable(caption = "number of missing grades per student") |> head(n = 10)
+```
+
+## Question 12
+
+```{r}
+ggplot(absence, aes(x= sum)) + geom_bar()
+```
+
+## Question 13
+
+```{r}
+grades_longer |> mutate(absent= case_when(!is.na(value)~F,is.na(value)~T))|> filter(name=="Exam") |> group_by(Group) |> summarise(sum= sum(absent)) 
+```
+
+```{r}
+library(stringr)
+```
+
+## Question 14
+
+```{r}
+grades_longer_new <- grades_longer|> filter(str_starts(name, "Online")) |> mutate(absent= case_when(!is.na(value)~F,is.na(value)~T)) |> group_by(Id) |> summarise(sum= sum(absent)) 
+grades_longer_new |> knitr::kable()
+```
+
+## Question 15
+
+### Alternative 1: row-wise
+```{r}
+grades_NEW <- grades |> rowwise() |> mutate(absent= list(case_when(!is.na(c_across(starts_with("Online")))~F,is.na(c_across(starts_with("Online")))~T))) |> mutate(absent= sum(absent))
+ 
+```
+```{r}
+ggplot(grades_NEW, aes(x=Exam, fill=factor(absent))) + geom_bar(position="fill")
+```
+
+### Alternative 2
+
+```{r}
+grades_new <- inner_join(grades, grades_longer_new, by=join_by("Id"))
+```
+```{r}
+ggplot(grades_new, aes(x=Exam, fill=factor(sum))) + geom_bar(position="fill")
+```
+
+## Question 16
+
+Create a table with two columns: Id to identify students and Missed with value TRUE when the student miss at least one MCQ_xx grade and FALSE when they miss no grade.
+
+```{r}
+table <- grades |> rowwise() |> mutate(absent_mcq= list(case_when(!is.na(c_across(starts_with("MCQ")))~F,is.na(c_across(starts_with("MCQ")))~T))) |> mutate(absent_mcq= sum(absent_mcq)) |> mutate(Missed=case_when(absent_mcq > 0 ~ T, absent_mcq==0 ~ F)) |> select(Id, Missed)
+```
+
+## Question 17
+
+```{r}
+grades <- grades |> rowwise() |> mutate(absent_mcq= list(case_when(!is.na(c_across(starts_with("MCQ")))~F,is.na(c_across(starts_with("MCQ")))~T))) |> mutate(absent_mcq= sum(absent_mcq)) |> mutate(Missed=case_when(absent_mcq > 0 ~ T, absent_mcq==0 ~ F)) 
+
+Pmissed <- grades |> group_by(Group) |> summarise(P_missed=sum(Missed)/n())
+```
+
+## Question 18
+
+Represent graphically the average grade at the Exam per group as a function of the
+percentage of missed MCQ_xx grade as defined in the previous question. The simplest way to obtain the
+data is to use inner_join to merge two intermediate tables (the one obtained in the previous question
+and one giving the average grades per group).
+
+```{r}
+exam_grades <- grades |> group_by(Group) |> summarise(mean= mean(Exam,  na.rm=TRUE))
+table2 <- inner_join(Pmissed, exam_grades)
+```
+```{r}
+ggplot(table2, aes(x=P_missed, y=mean)) + geom_line()
+```
