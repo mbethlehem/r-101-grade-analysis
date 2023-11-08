@@ -123,7 +123,7 @@ ggplot(absence, aes(x= sum)) + geom_bar() + xlab("number of absence") + ylab("co
 ## Question 13
 
 ```{r}
-grades_longer |> mutate(absent= case_when(!is.na(value)~F,is.na(value)~T))|> filter(name=="Exam") |> group_by(Group) |> summarise(sum= sum(absent)) 
+grades_longer |> mutate(absent= case_when(!is.na(value)~F,is.na(value)~T))|> filter(name=="Exam") |> group_by(Group) |> summarise(sum= sum(absent))  |> knitr::kable()
 ```
 
 ```{r}
@@ -141,17 +141,18 @@ grades_longer_new |> head(n=10) |> knitr::kable()
 
 ### Alternative 1: row-wise
 ```{r}
-grades_NEW <- grades |> rowwise() |> mutate(absent= list(case_when(!is.na(c_across(starts_with("Online")))~F,is.na(c_across(starts_with("Online")))~T))) |> mutate(absent= sum(absent))
+grades_NEW <- grades |> rowwise() |> mutate(absent= list(case_when(!is.na(c_across(starts_with("Online")))~F,is.na(c_across(starts_with("Online")))~T))) |> mutate(absent= sum(absent)) |> filter(!is.na(Exam)) 
  
 ```
 ```{r}
+
 ggplot(grades_NEW, aes(x=Exam, fill=factor(absent))) + geom_bar(position="fill") + ylab("proportion") + ggtitle("distribution of Exam conditioned by the number of absence")
 ```
 
 ### Alternative 2:
 
 ```{r}
-grades_new <- inner_join(grades, grades_longer_new, by=join_by("Id"))
+grades_new <- inner_join(grades, grades_longer_new, by=join_by("Id")) |> filter(!is.na(Exam)) 
 ```
 ```{r}
 ggplot(grades_new, aes(x=Exam, fill=factor(sum))) + geom_bar(position="fill")
