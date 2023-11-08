@@ -189,5 +189,5 @@ table <- table |> arrange(P_missed)
 ```
 
 ```{r}
-ggplot(table, aes(x=P_missed, y=mean)) + geom_line()
+ggplot(table, aes(x=P_missed, y=mean)) + geom_point()
 ```
