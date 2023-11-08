@@ -27,7 +27,7 @@ library(knitr)
 ```
 
 ```{r}
-grades |> summarise("min"=min(Exam, na.rm=TRUE), "max"= max(Exam, na.rm=TRUE), "median"= median(Exam, na.rm=TRUE), "mean"= mean(Exam, na.rm=TRUE)) |> knitr::kable()
+grades |> summarise("min"=min(Exam, na.rm=TRUE), "max"= max(Exam, na.rm=TRUE), "median"= median(Exam, na.rm=TRUE), "mean"= mean(Exam, na.rm=TRUE)) |> knitr::kable(caption= "statistics of Exam")
 ```
 ## Question 3
 
@@ -40,25 +40,24 @@ There were  `r nrow(num_absent)` absent students.
 ## Question 4
 
 ### Alternative 1:
+```{r}
+grade_ <- grades |> filter(!is.na(Exam)) |> group_by(Exam) |> summarise(N=n())
+```
+```{r}
+ggplot(grade_, aes(x=Exam, y=N)) + geom_col() + ylab("count") + ggtitle("distribution of Exam")
+```
+### Alternative 2
 
 ```{r}
 grades_new <- grades |> filter(!is.na(Exam))
 ```
 ```{r}
-grade_ <- grades |> filter(!is.na(Exam)) |> group_by(Exam) |> summarise(N=n())
-```
-
-```{r}
-ggplot(grade_, aes(x=Exam, y=N)) + geom_col()
-```
-### Alternative 2
-```{r}
-ggplot(grades_new, aes(x=Exam)) + geom_boxplot()
+ggplot(grades_new, aes(y=Exam)) + geom_boxplot() + ggtitle("distribution of Exam")
 ```
 ## Question 5
 
 ```{r}
-grades |> group_by(Group) |> summarise(N=n()) |> knitr::kable()
+grades |> group_by(Group) |> summarise(N=n()) |> knitr::kable(caption = "repartition of students in each group")
 ```
 ## Question 6
 
@@ -67,26 +66,25 @@ count_group <- grades |> group_by(Group) |> summarise(N=n())
 ```
 
 ```{r}
-ggplot(count_group, aes(x=Group, y=N)) + geom_col()
+ggplot(count_group, aes(x=Group, y=N)) + geom_col() + ylab("count") + ggtitle("distribution of Exam")
 ```
 
 ## Question 7
 
-Represent graphically the distribution of the grades at the Exam conditioned by the group. Test at least two different representations.
 
 ### Alternative 1
 ```{r}
-ggplot(grades_new, aes(x=Exam, fill=Group)) + geom_bar(position="fill")
+ggplot(grades_new, aes(x=Exam, fill=Group)) + geom_bar(position="fill") + ylab("proportion") + ggtitle("distribution of Exam conditioned by group")
 ```
 ### Alternative 2
 
 ```{r}
-ggplot(grades_new, aes(y=Exam, fill= Group)) + geom_boxplot()
+ggplot(grades_new, aes(y=Exam,fill= Group)) + geom_boxplot() + xlab("Group") + ggtitle("distribution of Exam conditioned by group")
 ```
 ## Question 8
 
 ```{r}
-absent_pergroup <- grades |> mutate(absent= case_when(!is.na(Exam)~F,is.na(Exam)~T)) |>group_by(Group) |> summarise(sum= sum(absent)) 
+absent_pergroup <- grades |> mutate(absent= case_when(!is.na(Exam)~F,is.na(Exam)~T)) |>group_by(Group) |> summarise(absence= sum(absent)) 
 
 absent_pergroup|> knitr::kable(caption="number of absent students per group")
 ```
@@ -94,13 +92,13 @@ absent_pergroup|> knitr::kable(caption="number of absent students per group")
 ## Question 9
 
 ```{r}
-ggplot(absent_pergroup, aes(x=Group, y=sum)) + geom_col()
+ggplot(absent_pergroup, aes(x=Group, y=absence)) + geom_col() + ylab("absence") + ggtitle("repartion of absence per group")
 ```
 
 ## Question 10
 
 ```{r}
-columns <- grades |> select(is.numeric, -Id) |> names()
+columns <- grades |> select(where(is.numeric), -Id) |> names()
 grades[columns] <-  round(grades[columns],2)
 ```
 
@@ -113,13 +111,13 @@ grades_longer <- grades |> pivot_longer(-c("Id", "Group"),names_to= "name", valu
 ```{r}
 absence <- grades_longer |> mutate(absent= case_when(!is.na(value)~F,is.na(value)~T)) |> group_by(Id) |> summarise(sum= sum(absent)) 
 
-absence |> knitr::kable(caption = "number of missing grades per student") |> head(n = 10)
+absence|> head(n = 10) |> knitr::kable(caption = "number of missing grades per student") 
 ```
 
 ## Question 12
 
 ```{r}
-ggplot(absence, aes(x= sum)) + geom_bar()
+ggplot(absence, aes(x= sum)) + geom_bar() + xlab("number of absence") + ylab("count") + ggtitle("distribution of the number of missing grades per student")
 ```
 
 ## Question 13
@@ -136,7 +134,7 @@ library(stringr)
 
 ```{r}
 grades_longer_new <- grades_longer|> filter(str_starts(name, "Online")) |> mutate(absent= case_when(!is.na(value)~F,is.na(value)~T)) |> group_by(Id) |> summarise(sum= sum(absent)) 
-grades_longer_new |> knitr::kable()
+grades_longer_new |> head(n=10) |> knitr::kable()
 ```
 
 ## Question 15
@@ -147,10 +145,10 @@ grades_NEW <- grades |> rowwise() |> mutate(absent= list(case_when(!is.na(c_acro
  
 ```
 ```{r}
-ggplot(grades_NEW, aes(x=Exam, fill=factor(absent))) + geom_bar(position="fill")
+ggplot(grades_NEW, aes(x=Exam, fill=factor(absent))) + geom_bar(position="fill") + ylab("proportion") + ggtitle("distribution of Exam conditioned by the number of absence")
 ```
 
-### Alternative 2
+### Alternative 2:
 
 ```{r}
 grades_new <- inner_join(grades, grades_longer_new, by=join_by("Id"))
@@ -158,34 +156,37 @@ grades_new <- inner_join(grades, grades_longer_new, by=join_by("Id"))
 ```{r}
 ggplot(grades_new, aes(x=Exam, fill=factor(sum))) + geom_bar(position="fill")
 ```
-
 ## Question 16
 
-Create a table with two columns: Id to identify students and Missed with value TRUE when the student miss at least one MCQ_xx grade and FALSE when they miss no grade.
-
 ```{r}
-table <- grades |> rowwise() |> mutate(absent_mcq= list(case_when(!is.na(c_across(starts_with("MCQ")))~F,is.na(c_across(starts_with("MCQ")))~T))) |> mutate(absent_mcq= sum(absent_mcq)) |> mutate(Missed=case_when(absent_mcq > 0 ~ T, absent_mcq==0 ~ F)) |> select(Id, Missed)
+
+grades <- grades |> rowwise() |> mutate(absent_mcq= list(case_when(!is.na(c_across(starts_with("MCQ")))~F,is.na(c_across(starts_with("MCQ")))~T))) |> mutate(absent_mcq= sum(absent_mcq)) |> mutate(Missed=case_when(absent_mcq > 0 ~ T, absent_mcq==0 ~ F)) 
+ 
+```
+```{r}
+grades |> select(Id, Missed) |> head(n=10) |> knitr::kable()
 ```
 
 ## Question 17
 
 ```{r}
-grades <- grades |> rowwise() |> mutate(absent_mcq= list(case_when(!is.na(c_across(starts_with("MCQ")))~F,is.na(c_across(starts_with("MCQ")))~T))) |> mutate(absent_mcq= sum(absent_mcq)) |> mutate(Missed=case_when(absent_mcq > 0 ~ T, absent_mcq==0 ~ F)) 
-
 Pmissed <- grades |> group_by(Group) |> summarise(P_missed=sum(Missed)/n())
+
+Pmissed |> head(n=10) |> knitr::kable()
 ```
 
 ## Question 18
 
-Represent graphically the average grade at the Exam per group as a function of the
-percentage of missed MCQ_xx grade as defined in the previous question. The simplest way to obtain the
-data is to use inner_join to merge two intermediate tables (the one obtained in the previous question
-and one giving the average grades per group).
+Represent graphically the average grade at the Exam per group as a function of the percentage of missed MCQ_xx grade as defined in the previous question.
 
 ```{r}
 exam_grades <- grades |> group_by(Group) |> summarise(mean= mean(Exam,  na.rm=TRUE))
-table2 <- inner_join(Pmissed, exam_grades)
+table <- inner_join(Pmissed, exam_grades)
 ```
 ```{r}
-ggplot(table2, aes(x=P_missed, y=mean)) + geom_line()
+table <- table |> arrange(P_missed)
+```
+
+```{r}
+ggplot(table, aes(x=P_missed, y=mean)) + geom_line()
 ```
