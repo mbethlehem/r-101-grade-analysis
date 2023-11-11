@@ -48,7 +48,7 @@ There were `r nrow(num_absent)` absent students.
 grade_ <- grades |> filter(!is.na(Exam)) |> group_by(Exam) |> summarise(N=n())
 ```
 
-```{r}
+```{r distribution of exam (1) }
 ggplot(grade_, aes(x=Exam, y=N)) + geom_col() + ylab("count") + ggtitle("distribution of Exam")
 ```
 
@@ -58,7 +58,7 @@ ggplot(grade_, aes(x=Exam, y=N)) + geom_col() + ylab("count") + ggtitle("distrib
 grades_new <- grades |> filter(!is.na(Exam))
 ```
 
-```{r}
+```{r distribution of exam (2)}
 ggplot(grades_new, aes(y=Exam)) + geom_boxplot() + ggtitle("distribution of Exam")
 ```
 
@@ -74,7 +74,7 @@ grades |> group_by(Group) |> summarise(N=n()) |> knitr::kable(caption = "reparti
 count_group <- grades |> group_by(Group) |> summarise(N=n())
 ```
 
-```{r}
+```{r distribution of people in each group}
 ggplot(count_group, aes(x=Group, y=N)) + geom_col() + ylab("count") + ggtitle("distribution of Exam") + coord_flip()
 ```
 
@@ -84,14 +84,14 @@ Here we used coord_flip to make the Group-axis more readable.
 
 ### Alternative 1:
 
-```{r}
-ggplot(grades_new, aes(x=Exam)) + geom_density() + facet_wrap(~Group)
+```{r distribution of Exam conditioned on Group (1)}
+ggplot(grades_new, aes(x=Exam)) + geom_density() + facet_wrap(~Group) + ggtitle("distribution of Exam conditioned on Group")
 ```
 
 ### Alternative 2:
 
-```{r}
-ggplot(grades_new, aes(y=Exam,x= Group)) + geom_boxplot() + xlab("Group") + ggtitle("distribution of Exam conditioned by group") + coord_flip()
+```{r distribution of Exam conditioned on Group (2)}
+ggplot(grades_new, aes(y=Exam,x= Group)) + geom_boxplot() + xlab("Group") + ggtitle("distribution of Exam conditioned by group") + ggtitle("distribution of Exam conditioned on Group")+ coord_flip()
 ```
 
 ## Question 8
@@ -104,7 +104,7 @@ absent_pergroup|> knitr::kable(caption="number of absent students per group")
 
 ## Question 9
 
-```{r}
+```{r repartion of absence per group}
 ggplot(absent_pergroup, aes(x=Group, y=absence)) + geom_col() + ylab("absence") + ggtitle("repartion of absence per group") + coord_flip()
 ```
 
@@ -125,7 +125,7 @@ absence|> head(n = 10) |> knitr::kable(caption = "number of missing grades per s
 
 ## Question 12
 
-```{r}
+```{r distribution of the number of missing grades per student}
 ggplot(absence, aes(x= sum)) + geom_bar() + xlab("number of absence") + ylab("count") + ggtitle("distribution of the number of missing grades per student")
 ```
 
@@ -155,13 +155,13 @@ absence_online |> head(n=10) |> knitr::kable()
 grades_NEW <- grades |> rowwise() |> mutate(absent= list(case_when(!is.na(c_across(starts_with("Online")))~F,is.na(c_across(starts_with("Online")))~T))) |> mutate(absent= sum(absent)) |> filter(!is.na(Exam)) 
 ```
 
-```{r}
-ggplot(grades_NEW, aes(x=Exam)) + geom_density() + facet_wrap(~absent)
+```{r distribution of the grades at the Exam conditioned by missing grades for online tests (1)}
+ggplot(grades_NEW, aes(x=Exam)) + geom_density() + facet_wrap(~absent) + ggtitle("distribution of the grades at the Exam conditioned by missing grades for online tests")
 ```
 ### Alternative 2:
 
-```{r}
-inner_join(grades, absence_online, by=join_by("Id")) |> filter(!is.na(Exam)) |> ggplot(aes(x=Exam)) + geom_density() + facet_wrap(~absence)
+```{r distribution of the grades at the Exam conditioned by missing grades for online tests (2)}
+inner_join(grades, absence_online, by=join_by("Id")) |> filter(!is.na(Exam)) |> ggplot(aes(x=Exam)) + geom_density() + facet_wrap(~absence) + ggtitle("distribution of the grades at the Exam conditioned by missing grades for online tests")
 ```
 
 ## Question 16
@@ -185,9 +185,12 @@ Pmissed |> head(n=10) |> knitr::kable()
 ## Question 18
 
 ```{r}
+#| message: false
+
 exam_grades <- grades |> group_by(Group) |> summarise(mean= mean(Exam,  na.rm=TRUE))
 table <- inner_join(Pmissed, exam_grades)
 ```
-```{r}
-ggplot(table, aes(x=P_missed, y=mean)) + geom_point() + geom_line()
+
+```{r average  Exam grade per group as a function of percentage of missed MCQ}
+ggplot(table, aes(x=P_missed, y=mean)) + geom_point() + ggtitle("average  Exam grade per group as a function of percentage of missed MCQ")
 ```
