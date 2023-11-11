@@ -68,14 +68,17 @@ count_group <- grades |> group_by(Group) |> summarise(N=n())
 ```{r}
 ggplot(count_group, aes(x=Group, y=N)) + geom_col() + ylab("count") + ggtitle("distribution of Exam")
 ```
-
 ## Question 7
-
 
 ### Alternative 1
 ```{r}
-ggplot(grades_new, aes(x=Exam, fill=Group)) + geom_bar(position="fill") + ylab("proportion") + ggtitle("distribution of Exam conditioned by group")
+ggplot(grades_new, aes(x=Group, fill=as.factor(Exam))) + geom_bar(position="fill") + ylab("proportion") + ggtitle("distribution of Exam conditioned by group")
 ```
+```{r}
+ggplot(grades_new, aes(x=Exam)) + geom_density() + facet_wrap(~Group)
+```
+```
+
 ### Alternative 2
 
 ```{r}
@@ -142,10 +145,8 @@ grades_longer_new |> head(n=10) |> knitr::kable()
 ### Alternative 1: row-wise
 ```{r}
 grades_NEW <- grades |> rowwise() |> mutate(absent= list(case_when(!is.na(c_across(starts_with("Online")))~F,is.na(c_across(starts_with("Online")))~T))) |> mutate(absent= sum(absent)) |> filter(!is.na(Exam)) 
- 
 ```
 ```{r}
-
 ggplot(grades_NEW, aes(x=Exam, fill=factor(absent))) + geom_bar(position="fill") + ylab("proportion") + ggtitle("distribution of Exam conditioned by the number of absence")
 ```
 
@@ -175,7 +176,6 @@ Pmissed <- grades |> group_by(Group) |> summarise(P_missed=sum(Missed)/n())
 
 Pmissed |> head(n=10) |> knitr::kable()
 ```
-
 ## Question 18
 
 Represent graphically the average grade at the Exam per group as a function of the percentage of missed MCQ_xx grade as defined in the previous question.
@@ -189,5 +189,5 @@ table <- table |> arrange(P_missed)
 ```
 
 ```{r}
-ggplot(table, aes(x=P_missed, y=mean)) + geom_point()
+ggplot(table, aes(x=P_missed, y=mean)) + geom_point() + geom_line()
 ```
