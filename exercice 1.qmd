@@ -192,5 +192,5 @@ table <- inner_join(Pmissed, exam_grades)
 ```
 
 ```{r average  Exam grade per group as a function of percentage of missed MCQ}
-ggplot(table, aes(x=P_missed, y=mean)) + geom_point()+ geom_line() + ggtitle("average  Exam grade per group as a function of percentage of missed MCQ")
+ggplot(table, aes(x=P_missed, y=mean)) + geom_col()+ ggtitle("average  Exam grade per group as a function of percentage of missed MCQ")
 ```
